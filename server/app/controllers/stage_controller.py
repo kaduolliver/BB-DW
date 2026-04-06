@@ -1,30 +1,22 @@
 from app.services.stage_services import (
-    srv_get_all_stages,
-    srv_create_stage,
-    srv_update_stage,
-    srv_delete_stage
+    get_all_stages as srv_get_all_stages,
+    create_stage as srv_create_stage,
+    update_stage as srv_update_stage,
+    delete_stage as srv_delete_stage,
 )
 
+
 def get_all_stages():
-    try:
-        return srv_get_all_stages()
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_get_all_stages()
+
 
 def create_stage(data):
-    try:
-        return srv_create_stage(data)
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_create_stage(data)
+
 
 def update_stage(id_stage, data):
-    try:
-        return srv_update_stage(id_stage, data)
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_update_stage(id_stage, data)
+
 
 def delete_stage(id_stage):
-    try:
-        return srv_delete_stage(id_stage)
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_delete_stage(id_stage)

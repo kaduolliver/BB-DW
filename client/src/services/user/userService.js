@@ -1,23 +1,13 @@
-import { request } from '../api/apiClient';
+import { get, put } from '../api/apiClient';
+
+export const getMeuPerfil = () => {
+    return get('/usuario/perfil');
+};
 
 export const atualizarPerfilBasico = (dados) => {
-    
-    return request('/usuario/perfil', {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dados),
-    });
+    return put('/usuario/perfil', dados);
 };
 
 export const atualizarPerfilSpeaker = (dadosSpeaker) => {
-    
-    return request('/usuario/speaker', {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dadosSpeaker),
-    });
+    return put('/usuario/speaker', dadosSpeaker);
 };

@@ -1,30 +1,19 @@
 from app.services.proposal_services import (
-    srv_get_all_proposals,
-    srv_create_proposal,
-    srv_update_proposal,
-    srv_delete_proposal
+    get_all_proposals as srv_get_all_proposals,
+    create_proposal as srv_create_proposal,
+    update_proposal as srv_update_proposal,
+    delete_proposal as srv_delete_proposal,
 )
 
+
 def get_all_proposals():
-    try:
-        return srv_get_all_proposals()
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_get_all_proposals()
 
 def create_proposal(data):
-    try:
-        return srv_create_proposal(data)
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_create_proposal(data)
 
 def update_proposal(id_proposal, data):
-    try:
-        return srv_update_proposal(id_proposal, data)
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_update_proposal(id_proposal, data)
 
 def delete_proposal(id_proposal):
-    try:
-        return srv_delete_proposal(id_proposal)
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_delete_proposal(id_proposal)

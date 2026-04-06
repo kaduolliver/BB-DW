@@ -1,30 +1,22 @@
 from app.services.slot_services import (
-    srv_get_all_slots,
-    srv_create_slot,
-    srv_update_slot,
-    srv_delete_slot
+    get_all_slots as srv_get_all_slots,
+    create_slot as srv_create_slot,
+    update_slot as srv_update_slot,
+    delete_slot as srv_delete_slot,
 )
 
+
 def get_all_slots():
-    try:
-        return srv_get_all_slots()
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_get_all_slots()
+
 
 def create_slot(data):
-    try:
-        return srv_create_slot(data)
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_create_slot(data)
+
 
 def update_slot(id_slot, data):
-    try:
-        return srv_update_slot(id_slot, data)
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_update_slot(id_slot, data)
+
 
 def delete_slot(id_slot):
-    try:
-        return srv_delete_slot(id_slot)
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_delete_slot(id_slot)

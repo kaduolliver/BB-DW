@@ -1,23 +1,17 @@
 from app.services.session_services import (
-    srv_get_all_sessions,
-    srv_create_session,
-    srv_delete_session
+    get_all_sessions as srv_get_all_sessions,
+    create_session as srv_create_session,
+    delete_session as srv_delete_session,
 )
 
+
 def get_all_sessions():
-    try:
-        return srv_get_all_sessions()
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_get_all_sessions()
+
 
 def create_session(data):
-    try:
-        return srv_create_session(data)
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_create_session(data)
+
 
 def delete_session(id_session):
-    try:
-        return srv_delete_session(id_session)
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_delete_session(id_session)

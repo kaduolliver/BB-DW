@@ -1,30 +1,22 @@
 from app.services.track_services import (
-    srv_get_all_tracks,
-    srv_create_track,
-    srv_update_track,
-    srv_delete_track
+    get_all_tracks as srv_get_all_tracks,
+    create_track as srv_create_track,
+    update_track as srv_update_track,
+    delete_track as srv_delete_track,
 )
 
+
 def get_all_tracks():
-    try:
-        return srv_get_all_tracks()
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_get_all_tracks()
+
 
 def create_track(data):
-    try:
-        return srv_create_track(data)
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_create_track(data)
+
 
 def update_track(id_track, data):
-    try:
-        return srv_update_track(id_track, data)
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_update_track(id_track, data)
+
 
 def delete_track(id_track):
-    try:
-        return srv_delete_track(id_track)
-    except Exception as e:
-        return {"erro": str(e)}, 500
+    return srv_delete_track(id_track)

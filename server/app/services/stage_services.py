@@ -1,96 +1,163 @@
+from sqlalchemy.exc import IntegrityError
 from app.database.db import SessionLocal
-from app.models.stage import Stage # Certifique-se de que o model existe conforme criamos lá atrás
+from app.exception import ValidationError, NotFoundError, ConflictError
+from app.models.stage import Stage
 from app.utils.validators import validar_campos_obrigatorios
 
-def srv_get_all_stages():
+
+DURACOES_SLOT_VALIDAS = [25, 50]
+
+
+def serialize_stage(stage):
+    return {
+        "id_stage": stage.id_stage,
+        "nome": stage.nome,
+        "tipo": stage.tipo,
+        "capacidade": stage.capacidade,
+        "duracao_slot": stage.duracao_slot,
+    }
+
+
+def get_all_stages():
     db = SessionLocal()
     try:
         palcos = db.query(Stage).all()
-        resultado = [
-            {
-                "id_stage": p.id_stage,
-                "nome": p.nome,
-                "tipo": p.tipo,
-                "capacidade": p.capacidade,
-                "duracao_slot": p.duracao_slot
-            } for p in palcos
-        ]
-        return resultado, 200
-    except Exception as e:
-        return {'erro': str(e)}, 500
+        resultado = [serialize_stage(palco) for palco in palcos]
+
+        return {
+            "success": True,
+            "message": "Palcos listados com sucesso.",
+            "data": resultado,
+        }, 200
+
     finally:
         db.close()
 
-def srv_create_stage(data):
+
+def create_stage(data):
     db = SessionLocal()
     try:
-        ok, msg = validar_campos_obrigatorios(data, ['nome', 'duracao_slot'])
+        ok, msg = validar_campos_obrigatorios(data, ["nome", "duracao_slot"])
         if not ok:
-            return {"erro": msg}, 400
+            raise ValidationError(msg)
 
-        if data['duracao_slot'] not in [25, 50]:
-            return {"erro": "A duração do slot deve ser 25 ou 50 minutos."}, 400
+        nome = data["nome"].strip()
+        if not nome:
+            raise ValidationError("O nome do palco é obrigatório.", {"field": "nome"})
+
+        duracao_slot = data["duracao_slot"]
+        if duracao_slot not in DURACOES_SLOT_VALIDAS:
+            raise ValidationError(
+                "A duração do slot deve ser 25 ou 50 minutos.",
+                {"field": "duracao_slot", "allowed_values": DURACOES_SLOT_VALIDAS},
+            )
 
         novo_palco = Stage(
-            nome=data['nome'],
-            tipo=data.get('tipo'),
-            capacidade=data.get('capacidade'),
-            duracao_slot=data['duracao_slot']
+            nome=nome,
+            tipo=data.get("tipo"),
+            capacidade=data.get("capacidade"),
+            duracao_slot=duracao_slot,
         )
 
         db.add(novo_palco)
         db.commit()
-        return {"mensagem": "Palco criado com sucesso!"}, 201
+        db.refresh(novo_palco)
 
-    except Exception as e:
+        return {
+            "success": True,
+            "message": "Palco criado com sucesso!",
+            "data": serialize_stage(novo_palco),
+        }, 201
+
+    except IntegrityError as e:
         db.rollback()
-        return {'erro': str(e)}, 500
+        erro_db = str(e.orig).lower()
+
+        if "unique" in erro_db or "duplicate" in erro_db:
+            raise ConflictError("Já existe um palco com os dados informados.")
+
+        raise ConflictError("Erro de integridade ao criar palco.")
+
     finally:
         db.close()
 
-def srv_update_stage(id_stage, data):
+
+def update_stage(id_stage, data):
     db = SessionLocal()
     try:
         palco = db.query(Stage).filter_by(id_stage=id_stage).first()
         if not palco:
-            return {"erro": "Palco não encontrado."}, 404
+            raise NotFoundError("Palco não encontrado.", {"id_stage": id_stage})
 
-        if 'nome' in data:
-            palco.nome = data['nome']
-        if 'tipo' in data:
-            palco.tipo = data['tipo']
-        if 'capacidade' in data:
-            palco.capacidade = data['capacidade']
-        if 'duracao_slot' in data:
-            if data['duracao_slot'] not in [25, 50]:
-                return {"erro": "A duração do slot deve ser 25 ou 50 minutos."}, 400
-            palco.duracao_slot = data['duracao_slot']
+        if "nome" in data:
+            nome = data["nome"].strip()
+            if not nome:
+                raise ValidationError("O nome do palco não pode ser vazio.", {"field": "nome"})
+            palco.nome = nome
+
+        if "tipo" in data:
+            palco.tipo = data["tipo"]
+
+        if "capacidade" in data:
+            palco.capacidade = data["capacidade"]
+
+        if "duracao_slot" in data:
+            duracao_slot = data["duracao_slot"]
+            if duracao_slot not in DURACOES_SLOT_VALIDAS:
+                raise ValidationError(
+                    "A duração do slot deve ser 25 ou 50 minutos.",
+                    {"field": "duracao_slot", "allowed_values": DURACOES_SLOT_VALIDAS},
+                )
+            palco.duracao_slot = duracao_slot
 
         db.commit()
-        return {"mensagem": "Palco atualizado com sucesso!"}, 200
+        db.refresh(palco)
 
-    except Exception as e:
+        return {
+            "success": True,
+            "message": "Palco atualizado com sucesso!",
+            "data": serialize_stage(palco),
+        }, 200
+
+    except IntegrityError as e:
         db.rollback()
-        return {'erro': str(e)}, 500
+        erro_db = str(e.orig).lower()
+
+        if "unique" in erro_db or "duplicate" in erro_db:
+            raise ConflictError("Já existe um palco com os dados informados.")
+
+        raise ConflictError("Erro de integridade ao atualizar palco.")
+
     finally:
         db.close()
 
-def srv_delete_stage(id_stage):
+
+def delete_stage(id_stage):
     db = SessionLocal()
     try:
         palco = db.query(Stage).filter_by(id_stage=id_stage).first()
         if not palco:
-            return {"erro": "Palco não encontrado."}, 404
+            raise NotFoundError("Palco não encontrado.", {"id_stage": id_stage})
 
         db.delete(palco)
         db.commit()
-        return {"mensagem": "Palco removido com sucesso!"}, 200
 
-    except Exception as e:
+        return {
+            "success": True,
+            "message": "Palco removido com sucesso!",
+            "data": None,
+        }, 200
+
+    except IntegrityError as e:
         db.rollback()
-        # Caso tente deletar um palco que já tem sessões/slots vinculados
-        if "violates foreign key constraint" in str(e).lower():
-            return {"erro": "Não é possível excluir um palco que possui sessões ou slots agendados."}, 400
-        return {'erro': str(e)}, 500
+        erro_db = str(e.orig).lower()
+
+        if "foreign key" in erro_db:
+            raise ConflictError(
+                "Não é possível excluir um palco que possui sessões ou slots agendados."
+            )
+
+        raise ConflictError("Erro de integridade ao excluir palco.")
+
     finally:
         db.close()
