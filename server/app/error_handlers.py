@@ -1,7 +1,7 @@
 import logging
 from flask import jsonify
 from werkzeug.exceptions import HTTPException
-from server.app.exception import AppError
+from app.exception import AppError
 
 logger = logging.getLogger(__name__)
 
