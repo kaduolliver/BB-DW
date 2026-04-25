@@ -1,0 +1,61 @@
+services:
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: bbdw_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-bbdw}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-admin123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"          # Exposto localmente para usar com DBeaver / pgAdmin
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-bbdw}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Flask API ────────────────────────────────────────────────────────────────
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: bbdw_server
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      FLASK_DEBUG: ${FLASK_DEBUG:-false}
+      PORT: ${PORT:-6000}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      DB_HOST: db                   # nome do serviço = hostname interno
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-bbdw}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-admin123}
+    ports:
+      - "${PORT:-6000}:${PORT:-6000}"
+    volumes:
+      - ./server:/app               # hot-reload em desenvolvimento
+      - /app/venv                   # preserva o venv dentro do container
+
+  # ── React / Vite (produção via nginx) ───────────────────────────────────────
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: bbdw_client
+    restart: unless-stopped
+    depends_on:
+      - server
+    ports:
+      - "80:80"
+
+volumes:
+  postgres_data:
+    name: bbdw_postgres_data
