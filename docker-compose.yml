@@ -11,7 +11,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"          # Exposto localmente para usar com DBeaver / pgAdmin
+      - "5433:5432"          # Exposto localmente na 5433 para evitar conflito (use essa porta no DBeaver)
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-bbdw}"]
       interval: 10s
@@ -45,16 +45,16 @@ services:
       - /app/venv                   # preserva o venv dentro do container
 
   # ── React / Vite (produção via nginx) ───────────────────────────────────────
-  client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    container_name: bbdw_client
-    restart: unless-stopped
-    depends_on:
-      - server
-    ports:
-      - "80:80"
+  # client:
+  #   build:
+  #     context: ./client
+  #     dockerfile: Dockerfile
+  #   container_name: bbdw_client
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - server
+  #   ports:
+  #     - "80:80"
 
 volumes:
   postgres_data:

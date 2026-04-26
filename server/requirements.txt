@@ -16,3 +16,5 @@ Werkzeug
 bcrypt
 reportlab
 requests
+pytest
+pytest-mock
