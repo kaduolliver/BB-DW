@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = '/api';
 
 export class ApiError extends Error {
     constructor(message, status, data = null) {
@@ -27,6 +27,10 @@ export async function request(endpoint, options = {}) {
     try {
         const response = await fetch(`${BASE_URL}${endpoint}`, {
             credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers,
+            },
             ...options,
         });
 
@@ -34,7 +38,7 @@ export async function request(endpoint, options = {}) {
 
         if (!response.ok) {
             throw new ApiError(
-                data?.erro || data?.mensagem || 'Erro na requisição',
+                data?.error?.message || data?.mensagem || data?.erro || `Erro HTTP ${response.status}`,
                 response.status,
                 data
             );
@@ -49,7 +53,7 @@ export async function request(endpoint, options = {}) {
 
         console.error('[NETWORK ERROR]:', error.message);
         throw new ApiError(
-            'Não foi possível conectar ao servidor',
+            'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.',
             0
         );
     }
