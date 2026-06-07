@@ -10,6 +10,7 @@ from app.routes.session_routes import session_bp
 from app.routes.track_routes import track_bp
 from app.routes.proposal_routes import proposal_bp
 from app.routes.slot_routes import slot_bp
+from app.routes.speaker_routes import speaker_bp
 from app.ia.ia_routes import ia_bp
 from app.error_handlers import register_error_handlers
 
@@ -40,6 +41,7 @@ def create_app():
     app.register_blueprint(track_bp)
     app.register_blueprint(proposal_bp)
     app.register_blueprint(slot_bp)
+    app.register_blueprint(speaker_bp)
     app.register_blueprint(ia_bp)
 
     register_error_handlers(app)
