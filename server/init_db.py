@@ -7,6 +7,7 @@ from app.models.slot import Slot
 from app.models.proposal import Proposal
 from app.models.session import Session
 from app.models.auditoria import Auditoria
+from app.models.ia_alert import IAAlert
 
 print("Criando tabelas no banco de dados...")
 Base.metadata.create_all(bind=engine)

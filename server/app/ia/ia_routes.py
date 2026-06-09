@@ -96,3 +96,26 @@ def route_scan_slot(id_slot: int):
     """
     resposta, status = ctrl_scan_slot(id_slot)
     return jsonify(resposta), status
+
+
+# ── HU 3.3 — Gerenciamento e Cache de Alertas ───────────────────────────────
+
+from app.ia.ia_controller import ctrl_get_alerts, ctrl_scan_all_alerts
+
+@ia_bp.get("/alerts")
+def route_get_alerts():
+    """
+    Retorna todos os alertas em cache no banco de dados.
+    """
+    resposta, status = ctrl_get_alerts()
+    return jsonify(resposta), status
+
+@ia_bp.post("/alerts/scan_all")
+def route_scan_all_alerts():
+    """
+    Escaneia todas as sessões e recria o cache de alertas no banco de dados.
+    Esta rota pode demorar vários segundos para responder.
+    """
+    resposta, status = ctrl_scan_all_alerts()
+    return jsonify(resposta), status
+

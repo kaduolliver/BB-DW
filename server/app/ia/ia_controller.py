@@ -29,3 +29,14 @@ def ctrl_compare_sessions(id_session_a: int, id_session_b: int):
 
 def ctrl_scan_slot(id_slot: int):
     return scan_concurrent_sessions(id_slot)
+
+
+# ── HU 3.3 ──────────────────────────────────────────────────────────────────
+
+from app.ia.alert_service import get_all_alerts, scan_and_save_all_alerts
+
+def ctrl_get_alerts():
+    return get_all_alerts()
+
+def ctrl_scan_all_alerts():
+    return scan_and_save_all_alerts()
