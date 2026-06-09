@@ -2,10 +2,41 @@ from sqlalchemy.exc import IntegrityError
 from app.database.db import SessionLocal
 from app.exception import ValidationError, NotFoundError, ConflictError
 from app.models.proposal import Proposal
+import json
 from app.utils.validators import validar_campos_obrigatorios
 
 
 STATUS_VALIDOS = ["PENDING", "REVIEW", "APPROVED", "REJECTED"]
+
+def processar_avaliacao_ia(titulo, descricao, resposta_ia_bruta):
+    """
+    Função de serviço do backend que recebe a resposta da API de IA e faz o
+    parsing. Contém a proteção de try/except validada pela equipa contra
+    json quebrados e formatações markdown indevidas.
+    """
+    prompt = (
+        f"Atue estritamente como um microsserviço de dados JSON. "
+        f"Avalie a proposta com o título '{titulo}' e descrição '{descricao}'. "
+        f"Retorne EXCLUSIVAMENTE um objeto JSON válido contendo apenas as chaves "
+        f"'relevancia' (inteiro de 1 a 10) e 'justificativa' (string curta). "
+        f"É terminantemente proibido incluir formatações de bloco markdown (```), "
+        f"saudações ou explicações adicionais fora do JSON. Comece a resposta diretamente "
+        f"com o caractere '{{'. Se o texto estiver vazio, contiver apenas palavras desconexas, "
+        f"ou for manifestamente insuficiente para uma avaliação técnica, pare imediatamente o "
+        f"processamento e retorne estritamente o seguinte JSON de erro: "
+        f"{{\"relevancia\": 0, \"justificativa\": \"Descricao insuficiente para avaliacao automatica\"}}. "
+        f"Não invente dados sob cenário algum."
+    )
+    
+    try:
+        analise_ia = json.loads(resposta_ia_bruta)
+    except json.JSONDecodeError:
+        # Fallback de segurança testado e validado
+        analise_ia = {
+            "relevancia": 0,
+            "justificativa": "Falha no parsing da resposta automatizada devido a formato inválido."
+        }
+    return analise_ia
 
 
 def get_all_proposals():

@@ -201,6 +201,94 @@ def compare_sessions(id_session_a: int, id_session_b: int) -> tuple[dict, int]:
         db.close()
 
 
+def compare_proposals(id_proposal_a: int, id_proposal_b: int) -> tuple[dict, int]:
+    """Compara duas propostas semanticamente, independentemente de estarem na grade."""
+    if id_proposal_a == id_proposal_b:
+        return {"success": False, "data": None, "message": "Propostas devem ser diferentes."}, 400
+
+    db = SessionLocal()
+    try:
+        proposta_a = db.query(Proposal).filter_by(id_proposal=id_proposal_a).first()
+        proposta_b = db.query(Proposal).filter_by(id_proposal=id_proposal_b).first()
+
+        if not proposta_a or not proposta_b:
+            return {"success": False, "data": None, "message": "Proposta não encontrada."}, 404
+
+        prompt = PROMPT_TEMPLATE.format(
+            titulo_a=proposta_a.titulo or "(sem título)",
+            descricao_a=proposta_a.descricao or "(sem descrição)",
+            titulo_b=proposta_b.titulo or "(sem título)",
+            descricao_b=proposta_b.descricao or "(sem descrição)",
+        )
+
+        try:
+            llm_result = _call_ollama(prompt)
+            score = float(llm_result.get("score", 0.0))
+            reasoning = str(llm_result.get("reasoning", ""))
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "data": None,
+                "message": (
+                    "Não foi possível conectar à IA. "
+                    "Verifique se o Ollama está rodando no servidor."
+                ),
+            }, 503
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "data": None,
+                "message": f"A IA demorou mais de {OLLAMA_TIMEOUT}s para responder.",
+            }, 504
+        except (json.JSONDecodeError, KeyError, ValueError) as e:
+            return {"success": False, "data": None, "message": f"Resposta inesperada da IA: {str(e)}"}, 502
+
+        alert = score >= SIMILARITY_THRESHOLD
+        resultado = {
+            "id_proposal_a": id_proposal_a,
+            "id_proposal_b": id_proposal_b,
+            "score": round(score, 4),
+            "reasoning": reasoning,
+            "alert": alert,
+            "threshold": SIMILARITY_THRESHOLD,
+        }
+
+        return {"success": True, "data": resultado, "message": "Comparado."}, 200
+    finally:
+        db.close()
+
+def scan_all_proposals() -> tuple[dict, int]:
+    """Escaneia TODAS as propostas no banco e cruza para achar similaridade."""
+    db = SessionLocal()
+    try:
+        propostas = db.query(Proposal).all()
+        if len(propostas) < 2:
+            return {"success": True, "data": {"alerts": []}, "message": "Poucas propostas."}, 200
+    finally:
+        db.close()
+
+    pares = list(itertools.combinations([p.id_proposal for p in propostas], 2))
+    alertas = []
+
+    for id_a, id_b in pares:
+        result, status = compare_proposals(id_a, id_b)
+        if status != 200:
+            return result, status
+        if result["data"]["alert"]:
+            alertas.append(result["data"])
+
+    return {
+        "success": True,
+        "data": {
+            "total_pairs_checked": len(pares),
+            "alerts": alertas,
+            "model": OLLAMA_MODEL,
+        },
+        "message": f"{len(alertas)} sobreposições."
+    }, 200
+
+
+
 def scan_concurrent_sessions(id_slot: int) -> tuple[dict, int]:
     """
     Escaneia todos os pares de sessões agendadas em slots com o mesmo
