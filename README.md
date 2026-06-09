@@ -59,7 +59,12 @@ A maneira mais simples de rodar a API e o banco de dados é utilizando o Docker 
    Isso irá iniciar:
    - Um container com o **PostgreSQL** na porta `5432`
    - O servidor **Flask (API)** na porta configurada (geralmente `6000`)
+   - O container **Ollama** na porta `11434` (Inteligência Artificial)
+   - O container secundário de auto-download do modelo Llama 3
    - O client (React) caso esteja configurado no Docker Compose
+
+4. **Aguarde o download da IA (Automático na primeira vez):**
+   Na primeira vez que você subir o projeto, um processo secundário vai baixar o modelo `llama3` (cerca de 4.7 GB) automaticamente em segundo plano. O modelo ficará salvo no seu HD permanentemente graças aos volumes do Docker. Se a sua internet for muito lenta, você pode acompanhar os logs do download com o comando `docker logs -f bbdw_ollama_pull`.
 
 A API estará acessível em: `http://localhost:6000`
 

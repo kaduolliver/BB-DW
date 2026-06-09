@@ -38,24 +38,35 @@ services:
       DB_NAME: ${DB_NAME:-bbdw}
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-admin123}
+      OLLAMA_URL: http://ollama:11434/api/generate
     ports:
       - "${PORT:-6000}:${PORT:-6000}"
     volumes:
       - ./server:/app               # hot-reload em desenvolvimento
       - /app/venv                   # preserva o venv dentro do container
 
-  # ── React / Vite (produção via nginx) ───────────────────────────────────────
-  client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    container_name: bbdw_client
+  # ── Ollama (IA Local) ───────────────────────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: bbdw_ollama
     restart: unless-stopped
-    depends_on:
-      - server
     ports:
-      - "80:80"
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  # ── Auto-Download Modelo IA ─────────────────────────────────────────────────
+  ollama-pull:
+    image: ollama/ollama:latest
+    container_name: bbdw_ollama_pull
+    depends_on:
+      - ollama
+    command: pull llama3
+    environment:
+      OLLAMA_HOST: "http://ollama:11434"
 
 volumes:
   postgres_data:
     name: bbdw_postgres_data
+  ollama_data:
+    name: bbdw_ollama_data
