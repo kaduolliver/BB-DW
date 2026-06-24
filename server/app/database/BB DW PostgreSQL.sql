@@ -141,6 +141,19 @@ CREATE INDEX idx_session_stage ON session(id_stage);
 CREATE INDEX idx_session_slot ON session(id_slot);
 
 -- =========================
+-- ALERTAS DE IA
+-- =========================
+CREATE TABLE ia_alerts (
+    id_alert SERIAL PRIMARY KEY,
+    tipo VARCHAR(50) NOT NULL,
+    titulo VARCHAR(200) NOT NULL,
+    conflito VARCHAR(200) NOT NULL,
+    descricao TEXT NOT NULL,
+    percentual FLOAT,
+    sessoes JSON NOT NULL
+);
+
+-- =========================
 -- FUNÇÃO DE AUDITORIA
 -- =========================
 CREATE OR REPLACE FUNCTION fn_auditoria(
