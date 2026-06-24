@@ -10,6 +10,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-admin123}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - "./server/app/database/BB DW PostgreSQL.sql:/docker-entrypoint-initdb.d/init.sql:ro"
     ports:
       - "5433:5432"          # Exposto localmente para usar com DBeaver / pgAdmin
     healthcheck:
@@ -33,8 +34,8 @@ services:
       FLASK_DEBUG: ${FLASK_DEBUG:-false}
       PORT: ${PORT:-6000}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
-      DB_HOST: db                   # nome do serviço = hostname interno
-      DB_PORT: ${DB_PORT:-5432}
+      DB_HOST: db                   # Forçado para dentro do Docker
+      DB_PORT: 5432                 # Forçado para dentro do Docker
       DB_NAME: ${DB_NAME:-bbdw}
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-admin123}
