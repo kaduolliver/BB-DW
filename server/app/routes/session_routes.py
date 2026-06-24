@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.controllers.session_controller import (
+from app.services.session_services import (
     get_all_sessions,
     create_session,
     delete_session,

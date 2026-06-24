@@ -10,12 +10,8 @@ Endpoints:
 
 from flask import Blueprint, request, jsonify
 
-from app.ia.ia_controller import (
-    ctrl_speaker_conflict,
-    ctrl_keynote_block,
-    ctrl_compare_sessions,
-    ctrl_scan_slot,
-)
+from app.ia.conflict_checker import check_speaker_conflict, check_keynote_block
+from app.ia.similarity_service import compare_sessions, scan_concurrent_sessions
 
 ia_bp = Blueprint("ia", __name__, url_prefix="/api/ia")
 
@@ -30,8 +26,9 @@ def route_speaker_conflict(id_speaker: int, id_slot: int):
     Resposta 200: palestrante disponível
     Resposta 409: conflito detectado
     """
-    resposta, status = ctrl_speaker_conflict(id_speaker, id_slot)
-    return jsonify(resposta), status
+    resultado = check_speaker_conflict(id_speaker, id_slot)
+    status = 409 if resultado.get("has_conflict") else 200
+    return jsonify({"success": True, "data": resultado}), status
 
 
 @ia_bp.get("/conflicts/keynote/<int:id_slot>")
@@ -42,8 +39,9 @@ def route_keynote_block(id_slot: int):
     Resposta 200: auditório livre
     Resposta 409: bloqueado por keynote
     """
-    resposta, status = ctrl_keynote_block(id_slot)
-    return jsonify(resposta), status
+    resultado = check_keynote_block(id_slot)
+    status = 409 if resultado.get("is_blocked") else 200
+    return jsonify({"success": True, "data": resultado}), status
 
 
 # ── HU 3.2 — Similaridade temática via LLM ──────────────────────────────────
@@ -81,7 +79,7 @@ def route_compare_sessions():
             "message": "id_session_a e id_session_b devem ser inteiros.",
         }), 400
 
-    resposta, status = ctrl_compare_sessions(id_a, id_b)
+    resposta, status = compare_sessions(id_a, id_b)
     return jsonify(resposta), status
 
 
@@ -94,20 +92,20 @@ def route_scan_slot(id_slot: int):
     Resposta 200: scan concluído (campo `data.alerts` contém os pares problemáticos)
     Resposta 5xx: erro de comunicação com o Ollama
     """
-    resposta, status = ctrl_scan_slot(id_slot)
+    resposta, status = scan_concurrent_sessions(id_slot)
     return jsonify(resposta), status
 
 
 # ── HU 3.3 — Gerenciamento e Cache de Alertas ───────────────────────────────
 
-from app.ia.ia_controller import ctrl_get_alerts, ctrl_scan_all_alerts
+from app.ia.alert_service import get_all_alerts, scan_and_save_all_alerts
 
 @ia_bp.get("/alerts")
 def route_get_alerts():
     """
     Retorna todos os alertas em cache no banco de dados.
     """
-    resposta, status = ctrl_get_alerts()
+    resposta, status = get_all_alerts()
     return jsonify(resposta), status
 
 @ia_bp.post("/alerts/scan_all")
@@ -116,6 +114,6 @@ def route_scan_all_alerts():
     Escaneia todas as sessões e recria o cache de alertas no banco de dados.
     Esta rota pode demorar vários segundos para responder.
     """
-    resposta, status = ctrl_scan_all_alerts()
+    resposta, status = scan_and_save_all_alerts()
     return jsonify(resposta), status
 

@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.controllers.proposal_controller import (
+from app.services.proposal_services import (
     get_all_proposals,
     create_proposal,
     update_proposal,

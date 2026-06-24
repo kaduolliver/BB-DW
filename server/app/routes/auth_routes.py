@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.controllers.auth_controller import (
+from app.services.auth_services import (
     registrar_usuario,
     login_usuario,
     verificar_sessao,

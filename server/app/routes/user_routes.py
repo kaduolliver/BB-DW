@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
-from app.controllers.user_controller import (
-    user_get_perfil,
-    user_atualizar_usuario,
-    user_atualizar_speaker,
+from app.services.user_services import (
+    get_perfil_usuario,
+    atualizar_usuario,
+    atualizar_perfil_speaker,
 )
 
 user_bp = Blueprint("usuario", __name__, url_prefix="/api/usuario")
@@ -10,17 +10,17 @@ user_bp = Blueprint("usuario", __name__, url_prefix="/api/usuario")
 
 @user_bp.get("/perfil")
 def get_perfil_route():
-    resposta, status = user_get_perfil()
+    resposta, status = get_perfil_usuario()
     return jsonify(resposta), status
 
 
 @user_bp.put("/perfil")
 def atualizar_usuario_route():
-    resposta, status = user_atualizar_usuario(request.json)
+    resposta, status = atualizar_usuario(request.json)
     return jsonify(resposta), status
 
 
 @user_bp.put("/speaker")
 def atualizar_speaker_route():
-    resposta, status = user_atualizar_speaker(request.json)
+    resposta, status = atualizar_perfil_speaker(request.json)
     return jsonify(resposta), status

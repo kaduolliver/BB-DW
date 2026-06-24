@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.controllers.speaker_controller import (
+from app.services.speaker_services import (
     get_all_speakers,
     get_speaker_by_id,
     create_speaker,

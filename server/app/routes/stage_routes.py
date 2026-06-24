@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.controllers.stage_controller import (
+from app.services.stage_services import (
     get_all_stages,
     create_stage,
     update_stage,

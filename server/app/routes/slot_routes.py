@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.controllers.slot_controller import (
+from app.services.slot_services import (
     get_all_slots,
     create_slot,
     update_slot,
