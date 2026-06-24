@@ -16,3 +16,7 @@ Werkzeug
 bcrypt
 reportlab
 requests
+pytest
+pytest-flask
+pytest-cov
+testcontainers[postgres]
